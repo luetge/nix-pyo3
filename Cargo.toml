@@ -1,0 +1,25 @@
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+authors = ["Daniel Lütgehetman"]
+edition = "2021"
+readme = "README.md"
+version = "0.0.0"
+
+[profile.release]
+incremental = true
+strip = "none"
+lto = "off"
+
+[workspace.dependencies]
+# local crates
+base = { path = "./crates/base" }
+bindings = { path = "./crates/bindings" }
+say-hello = { path = "./crates/say-hello" }
+
+# external ones
+uuid = { version = "1.4.0", features = ["v4"] }
+
+[workspace.dependencies.pyo3]
+version = "0.18.3"

@@ -1,0 +1,9 @@
+[package]
+name = "base"
+version.workspace = true
+readme.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+uuid.workspace = true

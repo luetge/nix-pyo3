@@ -1,0 +1,16 @@
+[package]
+name = "bindings"
+version.workspace = true
+readme.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+base.workspace = true
+pyo3.workspace = true
+
+[build-dependencies]
+pyo3-build-config = "0.18.3"
+
+[features]
+extension-module = ["pyo3/extension-module"]
