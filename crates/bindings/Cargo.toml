@@ -5,6 +5,10 @@ readme.workspace = true
 authors.workspace = true
 edition.workspace = true
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "bindings"
+
 [dependencies]
 base.workspace = true
 pyo3.workspace = true

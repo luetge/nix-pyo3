@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Need to run on a docker container, the raw machine is weird and
+    # makes nix fail. Need node for the checkout action.
+    container:
+      image: node:20
+    steps:
+      - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          init: none
+          planner: linux
+      - name: Set up nix cache
+        uses: actions/cache@v3
+        id: nix-cache
+        with:
+          path: /tmp/nixcache
+          key: ${{ runner.os }}-nix-flakes-${{ hashFiles('**/flake.lock') }}
+          restore-keys: ${{ runner.os }}-nix
+      - name: "Import nix store cache"
+        if: "steps.nix-cache.outputs.cache-hit == 'true'"
+        run: nix copy --no-check-sigs --no-require-sigs --from /tmp/nixcache --derivation .#say-hello.inputDerivation
+      - run: nix flake check
+      - run: nix build .#wheel
+      - run: nix build .#docker
+      - name: "Export nix store cache"
+        if: "steps.nix-cache.outputs.cache-hit != 'true'"
+        run: nix copy --no-check-sigs --no-require-sigs --to /tmp/nixcache --derivation .#say-hello.inputDerivation

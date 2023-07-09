@@ -41,6 +41,14 @@
             inherit system pkgs python packageName crane;
           } // args;
       rust = create-rust { };
+      docker = pkgs.dockerTools.buildLayeredImage {
+        name = packageName;
+        tag = "latest";
+        config = {
+          Cmd = [ "${rust.heavy_computer_binary "say-hello"}/bin/say-hello" ];
+        };
+        maxLayers = 120;
+      };
 
       # Create a shell to build the project with a given rust toolchain
       create-shell = { rustToolchain ? rust.rustToolchain }:
@@ -70,10 +78,19 @@
             ];
         });
 
-    in {
+    in rec {
       packages = {
-        say-hello = rust.heavy_computer_single "say-hello";
-        bindings = rust.heavy_computer_single "bindings";
+        bla = pkgs.python311;
+        say-hello = rust.heavy_computer_binary "say-hello";
+        bindings = rust.heavy_computer_ext python;
+        wheel = rust.heavy_computer_wheel python;
+        #coverage = rust.heavy_computer_llvmcoverage;
+        test = rust.heavy_computer_test;
+        docker = docker;
+      };
+
+      checks = {
+        test = if (system == "x86_64-linux") then rust.heavy_computer_coverage else rust.heavy_computer_test;
       };
 
       devShells = {
