@@ -1,11 +1,17 @@
 { system, pkgs, packageName, crane, python
-, rustToolchain ? (pkgs.rust-bin.stable.latest.default)
-}:
+, rustToolchain ? (pkgs.rust-bin.stable.latest.default) }:
 let
-  toolchain = rustToolchain.override { extensions = [ "rust-src" "cargo"
-            "rustc"
-            "rustfmt" "clippy" "rust-analyzer" "llvm-tools-preview"
-            ]; };
+  toolchain = rustToolchain.override {
+    extensions = [
+      "rust-src"
+      "cargo"
+      "rustc"
+      "rustfmt"
+      "clippy"
+      "rust-analyzer"
+      "llvm-tools-preview"
+    ];
+  };
   craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
   # We compile with glibc 2.17 for the pythone extension to be manylinux compliant
   target = if (!pkgs.stdenv.isDarwin) then "-target ${system}-gnu.2.17" else "";
@@ -72,9 +78,9 @@ let
 
   });
 
-  coverage_args = "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
-  coverage_html =
-    craneLib.cargoLlvmCov (commonArgs // rec {
+  coverage_args =
+    "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
+  coverage_html = craneLib.cargoLlvmCov (commonArgs // rec {
     inherit cargoArtifacts;
     cargoLlvmCovExtraArgs = "--html ${coverage_args}";
     name = "rust-coverage";
@@ -92,11 +98,13 @@ let
     '';
   });
 
-  coverage_lcov =
+  coverage_lcov = if pkgs.stdenv.isDarwin then
     craneLib.cargoLlvmCov (commonArgs // {
-    inherit cargoArtifacts;
-    cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
-  });
+      inherit cargoArtifacts;
+      cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
+    })
+  else
+    craneLib.cargoTarpaulin (commonArgs // { inherit cargoArtifacts; });
 
   # Repackage a single binary from the workspace derivation containing all binaries
   binary = binary:
@@ -214,8 +222,6 @@ let
       '';
     };
 in {
-  inherit heavy_computer binary ext
-    wheel test
-    coverage_html coverage_lcov;
+  inherit heavy_computer binary ext wheel test coverage_html coverage_lcov;
   rustToolchain = toolchain;
 }

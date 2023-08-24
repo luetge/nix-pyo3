@@ -27,7 +27,7 @@ jobs:
       - name: "Import nix store cache"
         if: "steps.nix-cache.outputs.cache-hit == 'true'"
         run: nix copy --no-check-sigs --no-require-sigs --from /tmp/nixcache --derivation .#say-hello.inputDerivation
-      - run: nix flake check
+      - run: nix build .#coverage_lcov
       - run: nix build .#wheel
       - run: nix build .#docker
       - name: "Export nix store cache"
