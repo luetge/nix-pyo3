@@ -1,8 +1,11 @@
 { system, pkgs, packageName, crane, python
-, rustToolchain ? (pkgs.rust-bin.fromRustupToolchainFile ../rust-toolchain.toml)
+, rustToolchain ? (pkgs.rust-bin.stable.latest.default)
 }:
 let
-  toolchain = rustToolchain.override { extensions = [ "rust-src" ]; };
+  toolchain = rustToolchain.override { extensions = [ "rust-src" "cargo"
+            "rustc"
+            "rustfmt" "clippy" "rust-analyzer" "llvm-tools-preview"
+            ]; };
   craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
   # We compile with glibc 2.17 for the pythone extension to be manylinux compliant
   target = if (!pkgs.stdenv.isDarwin) then "-target ${system}-gnu.2.17" else "";
@@ -42,7 +45,7 @@ let
     CARGO_INCREMENTAL = "0";
     CARGO_PROFILE_RELEASE_LTO = "thin";
     RUSTFLAGS = if pkgs.stdenv.isDarwin then
-      "-C force-frame-pointers=yes -C link-arg=-Wl"
+      "-C force-frame-pointers=yes -C link-arg=-Wl -C link-arg=-undefined -C link-arg=dynamic_lookup"
     else
       "-C linker=${zigcc}/bin/zigcc -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
   } // (if pkgs.stdenv.isDarwin then
@@ -68,12 +71,37 @@ let
     '';
 
   });
-  heavy_computer_coverage =
-    heavy_computer_test; # TODO: craneLib.cargoTarpaulin (commonArgs // { inherit cargoArtifacts; });
-  heavy_computer_llvmcoverage = heavy_computer_coverage;
-  # TODO: craneLibLLvmTools.cargoLlvmCov (commonArgs // {
-  #   inherit cargoArtifacts;
-  #});
+
+  coverage_args = "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
+  heavy_computer_coverage_html =
+    craneLib.cargoLlvmCov (commonArgs // rec {
+    inherit cargoArtifacts;
+    cargoLlvmCovExtraArgs = "--html ${coverage_args}";
+    name = "rust-coverage";
+    meta.mainProgram = name;
+    postInstall = ''
+      mkdir -p $out
+      cp -r target/llvm-cov/html/* $out/
+
+      # Make it runnable with nix run (at least on macOS)
+      # TODO: Make it work on linux
+      mkdir -p $out/bin
+      echo "#!/bin/bash" >> $out/bin/${name}
+      echo "/usr/bin/open $out/index.html" >> $out/bin/${name}
+      chmod +x $out/bin/${name}
+    '';
+  });
+
+  heavy_computer_coverage_lcov =
+    craneLib.cargoLlvmCov (commonArgs // {
+    inherit cargoArtifacts;
+    cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
+  });
+
+  heavy_computer_coverage_tarpaulin =
+    craneLib.cargoTarpaulin (commonArgs // {
+    inherit cargoArtifacts;
+  });
 
   # Repackage a single binary from the workspace derivation containing all binaries
   heavy_computer_binary = binary:
@@ -192,7 +220,7 @@ let
     };
 in {
   inherit heavy_computer heavy_computer_binary heavy_computer_ext
-    heavy_computer_wheel heavy_computer_coverage heavy_computer_test
-    heavy_computer_llvmcoverage;
+    heavy_computer_wheel heavy_computer_test
+    heavy_computer_coverage_html heavy_computer_coverage_lcov heavy_computer_coverage_tarpaulin;
   rustToolchain = toolchain;
 }

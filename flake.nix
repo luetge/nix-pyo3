@@ -72,25 +72,27 @@
             [
               rust-analyzer
               cargo-nextest
+              cargo-llvm-cov
               openssl
             ] ++ lib.optional (!stdenv.isDarwin) [
               pkgs.sssd
             ];
         });
 
-    in rec {
+    in {
       packages = {
-        bla = pkgs.python311;
         say-hello = rust.heavy_computer_binary "say-hello";
         bindings = rust.heavy_computer_ext python;
         wheel = rust.heavy_computer_wheel python;
-        #coverage = rust.heavy_computer_llvmcoverage;
+        coverage = rust.heavy_computer_coverage_html;
+        coverage_lcov = rust.heavy_computer_coverage_lcov;
+        coverage_tarpaulin = rust.heavy_computer_coverage_tarpaulin;
         test = rust.heavy_computer_test;
         docker = docker;
       };
 
       checks = {
-        test = if (system == "x86_64-linux") then rust.heavy_computer_coverage else rust.heavy_computer_test;
+        test = if (system == "x86_64-linux") then rust.heavy_computer_coverage_tarpaulin else rust.heavy_computer_test;
       };
 
       devShells = {
