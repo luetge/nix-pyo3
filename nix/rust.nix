@@ -63,7 +63,7 @@ let
     craneLib.buildPackage (commonArgs // { inherit cargoArtifacts; });
 
   # Test 
-  heavy_computer_test = craneLib.cargoTest (commonArgs // {
+  test = craneLib.cargoTest (commonArgs // {
     inherit cargoArtifacts;
     preConfigurePhases = [ "fixBindings" ];
     fixBindings = ''
@@ -73,7 +73,7 @@ let
   });
 
   coverage_args = "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
-  heavy_computer_coverage_html =
+  coverage_html =
     craneLib.cargoLlvmCov (commonArgs // rec {
     inherit cargoArtifacts;
     cargoLlvmCovExtraArgs = "--html ${coverage_args}";
@@ -92,19 +92,14 @@ let
     '';
   });
 
-  heavy_computer_coverage_lcov =
+  coverage_lcov =
     craneLib.cargoLlvmCov (commonArgs // {
     inherit cargoArtifacts;
     cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
   });
 
-  heavy_computer_coverage_tarpaulin =
-    craneLib.cargoTarpaulin (commonArgs // {
-    inherit cargoArtifacts;
-  });
-
   # Repackage a single binary from the workspace derivation containing all binaries
-  heavy_computer_binary = binary:
+  binary = binary:
     pkgs.stdenv.mkDerivation {
       # Make sure we have the correct dependencies
       inherit (heavy_computer) buildInputs propagatedBuildInputs version;
@@ -124,7 +119,7 @@ let
     };
 
   # Compile the python extension
-  heavy_computer_ext = python:
+  ext = python:
     pkgs.stdenv.mkDerivation {
       # Make sure we have the correct dependencies
       inherit (heavy_computer) version;
@@ -147,7 +142,7 @@ let
       '';
     };
 
-  heavy_computer_wheel = python:
+  wheel = python:
     pkgs.stdenv.mkDerivation rec {
       # Make sure we have the correct dependencies
       inherit (heavy_computer)
@@ -176,10 +171,10 @@ let
         export PYTHON_BIN=${python}/bin/python
         echo Compiling version $VERSION for $PYTHON_BIN
 
-        tmp_dir=$(mktemp -d -t heavy_computer_wheel-XXXXXXXXXX)
+        tmp_dir=$(mktemp -d -t wheel-XXXXXXXXXX)
 
         # Copy extension
-        cp ${heavy_computer_ext python}/* $tmp_dir/
+        cp ${ext python}/* $tmp_dir/
 
         # Also copy the config folder
         # mkdir -p $tmp_dir/config/
@@ -219,8 +214,8 @@ let
       '';
     };
 in {
-  inherit heavy_computer heavy_computer_binary heavy_computer_ext
-    heavy_computer_wheel heavy_computer_test
-    heavy_computer_coverage_html heavy_computer_coverage_lcov heavy_computer_coverage_tarpaulin;
+  inherit heavy_computer binary ext
+    wheel test
+    coverage_html coverage_lcov;
   rustToolchain = toolchain;
 }
