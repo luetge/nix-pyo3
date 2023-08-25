@@ -18,7 +18,7 @@ jobs:
         # planner: linux
       #- name: Run the Magic Nix Cache
       #  uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix build .#test || nix log /nix/store/5sqknwxg7iis395n10mwlz7da252x7hl-heavy_computer-deps-0.0.0.drv
+      - run: nix build .#test || (ls -la /build/source/target/release/build/target-lexicon-e285f28de2e78038/build-script-build; cat /build/source/target/release/build/target-lexicon-e285f28de2e78038/build-script-build)
       # - run: nix build .#wheel
       # - run: nix build .#docker
       # - run: nix build .#coverage_lcov
