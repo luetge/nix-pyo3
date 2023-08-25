@@ -67,7 +67,7 @@ let
 
   # Build dependencies separately for faster builds in CI/CD
   cargoArtifactsZig = craneLib.buildDepsOnly (commonArgsZig // { doCheck = false;
-  buildPhaseCargoCommand = "cargo build || (ls -la /build/source; ls -la /build/source/target/release; ls -la /build/source/target/release/build; ls -la /build/source/target/release/build/libc-ff4c016e9ae90a0f; RUST_BACKTRACE=1 /build/source/target/release/build/libc-ff4c016e9ae90a0f/build-script-build)";
+  buildPhaseCargoCommand = "cargo build --release || (ls -la /build/source; ls -la /build/source/target/release; ls -la /build/source/target/release/build; ls -la /build/source/target/release/build/libc-ff4c016e9ae90a0f; RUST_BACKTRACE=1 /build/source/target/release/build/libc-ff4c016e9ae90a0f/build-script-build)";
    });
   cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { doCheck = false; });
 
