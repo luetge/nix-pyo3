@@ -55,7 +55,7 @@ let
     RUSTFLAGS = if pkgs.stdenv.isDarwin then
       "-C force-frame-pointers=yes -C link-arg=-Wl -C link-arg=-undefined -C link-arg=dynamic_lookup"
     else
-      "-C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
+      ""; # "-C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
   };
 
   # TODO: llvm cov fails with zig, fix this to avoid double compilation
