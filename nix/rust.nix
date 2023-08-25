@@ -69,11 +69,11 @@ let
 
   # Package the whole workspace with all its binaries
   heavy_computer =
-    craneLib.buildPackage (commonArgsZig // { inherit cargoArtifactsZig; });
+    craneLib.buildPackage (commonArgsZig // { cargoArtifacts = cargoArtifactsZig; });
 
   # Test 
   test = craneLib.cargoTest (commonArgsZig // {
-    inherit cargoArtifactsZig;
+    cargoArtifacts = cargoArtifacts;
     preConfigurePhases = [ "fixBindings" ];
     fixBindings = ''
       rm -f target/release/deps/libbindings.rlib 
