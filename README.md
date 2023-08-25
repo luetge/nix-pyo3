@@ -18,3 +18,4 @@ while only compiling a single time (and allowing the caching of dependencies by 
 * nix build .#coverage_lcov => generate lcov report
 * nix build .#docker => generate docker image running binary as main command
 * nix flake check => run tests
+
