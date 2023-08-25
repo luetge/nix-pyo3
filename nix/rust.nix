@@ -73,7 +73,7 @@ let
 
   # Test 
   test = craneLib.cargoTest (commonArgsZig // {
-    cargoArtifacts = cargoArtifacts;
+    cargoArtifacts = cargoArtifactsZig;
     preConfigurePhases = [ "fixBindings" ];
     fixBindings = ''
       rm -f target/release/deps/libbindings.rlib 
