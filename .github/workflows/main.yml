@@ -7,10 +7,6 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    # Need to run on a docker container, the raw machine is weird and
-    # makes nix fail. Need node for the checkout action.
-    container:
-      image: node:20
     steps:
       - uses: actions/checkout@v3
       - uses: DeterminateSystems/nix-installer-action@main
