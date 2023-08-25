@@ -16,8 +16,8 @@ jobs:
         with:
           init: none
           planner: linux
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
+      #- name: Run the Magic Nix Cache
+      #  uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix build .#test
       - run: nix build .#wheel
       - run: nix build .#docker
