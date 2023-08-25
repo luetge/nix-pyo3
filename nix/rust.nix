@@ -60,9 +60,9 @@ let
 
   # TODO: llvm cov fails with zig, fix this to avoid double compilation
   commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then {} else {
-    # HOST_CC = "${zigcc}/bin/zigcc";
-    # CC = "${zigcc}/bin/zigcc";
-    RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
+    HOST_CC = "${zigcc}/bin/zigcc";
+    CC = "${zigcc}/bin/zigcc";
+    # RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
   });
 
   # Build dependencies separately for faster builds in CI/CD
