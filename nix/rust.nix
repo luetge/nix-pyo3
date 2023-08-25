@@ -32,6 +32,8 @@ let
         (fileFilter path type) || (craneLib.filterCargoSources path type);
     };
 
+    RUST_TEST_THREADS = 1;
+
     # Build inputs for the crates
     buildInputs =
       (with pkgs; [ libiconv clang lld pkgconfig git zlib python zigcc ])
