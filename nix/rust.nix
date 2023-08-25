@@ -81,12 +81,6 @@ let
     preConfigurePhases = [ "fixBindings" ];
     fixBindings = ''
       rm -f target/release/deps/libbindings.rlib 
-      ls -la /build/source
-      ls -la /build/source/target/release
-      ls -la /build/source/target/release/build
-      ls -la /build/source/target/release/build/libc-ff4c016e9ae90a0f
-      RUST_BACKTRACE=1 /build/source/target/release/build/libc-ff4c016e9ae90a0f/build-script-build)
-      RUST_BACKTRACE=1 /build/source/target/release/build/target-lexicon-e285f28de2e78038/build-script-build
     '';
 
   });
