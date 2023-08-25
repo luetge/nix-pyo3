@@ -98,13 +98,10 @@ let
     '';
   });
 
-  coverage_lcov = if pkgs.stdenv.isDarwin then
-    craneLib.cargoLlvmCov (commonArgs // {
+  coverage_lcov = craneLib.cargoLlvmCov (commonArgs // {
       inherit cargoArtifacts;
       cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
-    })
-  else
-    craneLib.cargoTarpaulin (commonArgs // { inherit cargoArtifacts; });
+    });
 
   # Repackage a single binary from the workspace derivation containing all binaries
   binary = binary:
