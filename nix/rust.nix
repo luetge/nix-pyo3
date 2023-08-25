@@ -65,6 +65,8 @@ let
     HOST_LINKER = "${zigcc}/bin/zigcc";
     HOST_LD = "${zigcc}/bin/zigcc";
     RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
+    CARGO_UNSTABLE_HOST_CONFIG = "true";
+    CARGO_HOST_LINKER = "${zigcc}/bin/zigcc";
   });
 
   # Build dependencies separately for faster builds in CI/CD
