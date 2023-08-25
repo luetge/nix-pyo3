@@ -36,7 +36,7 @@ let
 
     # Build inputs for the crates
     buildInputs =
-      (with pkgs; [ libiconv clang lld pkgconfig git zlib python zigcc ])
+      (with pkgs; [ libiconv clang lld pkgconfig git zlib python zig zigcc ])
       ++ pkgs.lib.optional pkgs.stdenv.isDarwin
       (with pkgs.darwin.apple_sdk.frameworks; [
         Security
