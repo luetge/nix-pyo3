@@ -17,20 +17,9 @@ jobs:
         with:
           init: none
           planner: linux
-      - name: Set up nix cache
-        uses: actions/cache@v3
-        id: nix-cache
-        with:
-          path: /tmp/nixcache
-          key: ${{ runner.os }}-nix-flakes-${{ hashFiles('**/flake.lock') }}
-          restore-keys: ${{ runner.os }}-nix
-      - name: "Import nix store cache"
-        if: "steps.nix-cache.outputs.cache-hit == 'true'"
-        run: nix copy --no-check-sigs --no-require-sigs --from /tmp/nixcache --derivation .#say-hello.inputDerivation
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
       - run: nix build .#wheel
       - run: nix build .#test
       - run: nix build .#docker
       - run: nix build .#coverage_lcov
-      - name: "Export nix store cache"
-        if: "steps.nix-cache.outputs.cache-hit != 'true'"
-        run: nix copy --no-check-sigs --no-require-sigs --to /tmp/nixcache --derivation .#say-hello.inputDerivation
