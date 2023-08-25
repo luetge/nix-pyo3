@@ -1,5 +1,5 @@
 { system, pkgs, packageName, crane, python
-, rustToolchain ? (pkgs.rust-bin.fromRustupToolchainFile ../rust-toolchain.toml) }:
+, rustToolchain ? (pkgs.rust-bin.stable.latest.default) }:
 let
   toolchain = rustToolchain.override {
     extensions = [
