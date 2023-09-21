@@ -1,9 +1,6 @@
 {
-  outputs = {
-    self,
-    nixpkgs,
-  }: {
-    nixosModules.base = {pkgs, ...}: {
+  outputs = { self, nixpkgs, }: {
+    nixosModules.base = { pkgs, ... }: {
       system.stateVersion = "22.05";
 
       # Configure networking
@@ -15,7 +12,7 @@
       users.users.test.isNormalUser = true;
 
       # Enable passwordless ‘sudo’ for the "test" user
-      users.users.test.extraGroups = ["wheel"];
+      users.users.test.extraGroups = [ "wheel" ];
       security.sudo.wheelNeedsPassword = false;
 
       # Make VM output to the terminal instead of a separate window
@@ -31,12 +28,15 @@
         modules = [
           self.nixosModules.base
           {
-            virtualisation.vmVariant.virtualisation.host.pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+            virtualisation.vmVariant.virtualisation.host.pkgs =
+              nixpkgs.legacyPackages.aarch64-darwin;
           }
         ];
       };
     };
-    packages.x86_64-linux.linuxVM = self.nixosConfigurations.linuxVM.config.system.build.vm;
-    packages.aarch64-darwin.darwinVM = self.nixosConfigurations.darwinVM.config.system.build.vm;
+    packages.x86_64-linux.linuxVM =
+      self.nixosConfigurations.linuxVM.config.system.build.vm;
+    packages.aarch64-darwin.darwinVM =
+      self.nixosConfigurations.darwinVM.config.system.build.vm;
   };
 }

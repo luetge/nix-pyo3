@@ -2,7 +2,9 @@
   description = "Rust code with python bindings";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    # TODO: Fix this non-main reference once this PR is merged: https://github.com/NixOS/nixpkgs/pull/193336
+    nixpkgs.url =
+      "github:NixOS/nixpkgs/e39a5efc4504099194032dfabdf60a0c4c78f181";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,6 +43,13 @@
           maxLayers = 120;
         };
 
+        # Integration tests
+        integration-tests =
+          import ./nix/integration-tests.nix { inherit nixpkgs pkgs system; };
+
+        # Scripts
+        scripts = import ./nix/scripts.nix { inherit pkgs; };
+
         # Create a shell to build the project with a given rust toolchain
         create-shell = { rustToolchain ? rust.rustToolchain }:
           pkgs.mkShell ({
@@ -58,7 +67,7 @@
               [ (create-rust { inherit rustToolchain; }).heavy_computer ];
 
             buildInputs = with pkgs;
-              [ rust-analyzer cargo-nextest cargo-llvm-cov openssl ]
+              [ rust-analyzer cargo-nextest openssl scripts.fmt ]
               ++ lib.optional (!stdenv.isDarwin) [ pkgs.sssd ];
           });
 
@@ -67,13 +76,18 @@
           say-hello = rust.binary "say-hello";
           bindings = rust.ext python;
           wheel = rust.wheel python;
-          coverage = rust.coverage_html;
-          coverage_lcov = rust.coverage_lcov;
+          # TODO: coverage = rust.coverage_html;
+          # TODO: coverage_lcov = rust.coverage_lcov;
           test = rust.test;
+          integration-tests = integration-tests.test;
           docker = docker;
-        };
+        } // scripts;
 
-        checks = { test = rust.test; };
+        checks = {
+          test = rust.test;
+          integration-tests = integration-tests.test;
+          fmt = scripts.fmt_check;
+        };
 
         devShells = { default = create-shell { }; };
       });

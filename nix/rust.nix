@@ -34,7 +34,7 @@ let
 
     # Build inputs for the crates
     buildInputs =
-      (with pkgs; [ libiconv clang lld pkgconfig git zlib python zigcc ])
+      (with pkgs; [ libiconv clang lld pkg-config git zlib python zigcc ])
       ++ pkgs.lib.optional pkgs.stdenv.isDarwin
       (with pkgs.darwin.apple_sdk.frameworks; [
         Security
@@ -57,19 +57,22 @@ let
   };
 
   # TODO: llvm cov fails with zig, fix this to avoid double compilation
-  commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then {} else {
+  commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then
+    { }
+  else {
     HOST_CC = "${zigcc}/bin/zigcc";
     CC = "${zigcc}/bin/zigcc";
     RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
   });
 
   # Build dependencies separately for faster builds in CI/CD
-  cargoArtifactsZig = craneLib.buildDepsOnly (commonArgsZig // { doCheck = false; });
+  cargoArtifactsZig =
+    craneLib.buildDepsOnly (commonArgsZig // { doCheck = false; });
   cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { doCheck = false; });
 
   # Package the whole workspace with all its binaries
-  heavy_computer =
-    craneLib.buildPackage (commonArgsZig // { cargoArtifacts = cargoArtifactsZig; });
+  heavy_computer = craneLib.buildPackage
+    (commonArgsZig // { cargoArtifacts = cargoArtifactsZig; });
 
   # Test 
   test = craneLib.cargoTest (commonArgsZig // {
@@ -102,9 +105,9 @@ let
   });
 
   coverage_lcov = craneLib.cargoLlvmCov (commonArgs // {
-      inherit cargoArtifacts;
-      cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
-    });
+    inherit cargoArtifacts;
+    cargoLlvmCovExtraArgs = "--lcov --output-path $out ${coverage_args}";
+  });
 
   # Repackage a single binary from the workspace derivation containing all binaries
   binary = binary:
