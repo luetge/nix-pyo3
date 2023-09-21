@@ -19,3 +19,17 @@ while only compiling a single time (and allowing the caching of dependencies by 
 * nix build .#docker => generate docker image running binary as main command
 * nix flake check => run tests
 
+
+## macOS setup (until fixed upstream)
+
+On darwin-nix, make sure to set
+
+```nix
+{
+  nix.linux-builder = {
+    enable = true;
+    maxJobs = 10;
+  };
+  nix.settings.system-features = [ "kvm" "nixos-test" "benchmark" "big-parallel" "hvf" ];
+}
+```
