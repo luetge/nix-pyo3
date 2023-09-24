@@ -1,11 +1,16 @@
-{ nixpkgs, pkgs, system }:
+{ nixpkgs, pkgs, system, integration-tests }:
 
+let
+vm-system = "aarch64-linux";
+vm-pkgs = nixpkgs.legacyPackages.${vm-system}.pkgs;
+tests = integration-tests vm-system;
+in
 {
   test = pkgs.nixosTest {
     name = "test";
 
     nodes.machine = { config, pkgs, ... }: {
-      nixpkgs.pkgs = nixpkgs.legacyPackages.aarch64-linux.pkgs;
+      nixpkgs.pkgs = vm-pkgs;
 
       virtualisation.host.pkgs = pkgs;
 
@@ -17,7 +22,7 @@
       users.users.alice = {
         isNormalUser = true;
         extraGroups = [ "wheel" ];
-        packages = with pkgs; [ firefox tree ];
+        packages = [ tests ];
       };
 
       system.stateVersion = "22.11";
@@ -25,8 +30,7 @@
 
     testScript = ''
       machine.wait_for_unit("default.target")
-      machine.succeed("su -- alice -c 'which firefox'")
-      machine.fail("su -- root -c 'which firefox'")
+      machine.succeed("su -- alice -c '${tests}/bin/nix-integration-tests'")
     '';
   };
 }

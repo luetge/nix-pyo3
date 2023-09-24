@@ -1,6 +1,11 @@
-{ system, pkgs, packageName, crane, python
-, rustToolchain ? (pkgs.rust-bin.stable.latest.default) }:
+{ system, nixpkgs, rust-overlay, packageName, crane, python }:
 let
+  pkgs = import nixpkgs {
+    inherit system;
+    overlays = [ (import rust-overlay) ];
+  };
+  python_ = pkgs.${python};
+  rustToolchain = pkgs.rust-bin.stable.latest.default; # TODO: Make configurable
   toolchain = rustToolchain.override {
     extensions = [
       "rust-src"
@@ -34,7 +39,7 @@ let
 
     # Build inputs for the crates
     buildInputs =
-      (with pkgs; [ libiconv clang lld pkg-config git zlib python zigcc ])
+      (with pkgs; [ libiconv clang lld pkg-config git zlib python_ zigcc ])
       ++ pkgs.lib.optional pkgs.stdenv.isDarwin
       (with pkgs.darwin.apple_sdk.frameworks; [
         Security
@@ -45,7 +50,7 @@ let
     cargoExtraArgs = "--features extension-module";
 
     # Explicitly set python executable so pyo3 does not rebuild on every path change
-    PYO3_PYTHON = "${python}/bin/python";
+    PYO3_PYTHON = "${python_}/bin/python";
 
     # Build optimization
     CARGO_INCREMENTAL = "0";
@@ -60,9 +65,10 @@ let
   commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then
     { }
   else {
-    HOST_CC = "${zigcc}/bin/zigcc";
-    CC = "${zigcc}/bin/zigcc";
-    RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
+    # TODO: Enable again
+    # HOST_CC = "${zigcc}/bin/zigcc";
+    # CC = "${zigcc}/bin/zigcc";
+    # RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
   });
 
   # Build dependencies separately for faster builds in CI/CD
@@ -83,6 +89,40 @@ let
     '';
 
   });
+  nix-integration-tests-internal = craneLib.cargoTest (commonArgsZig // {
+    cargoArtifacts = cargoArtifactsZig;
+    preConfigurePhases = [ "fixBindings" ];
+    fixBindings = ''
+      rm -f target/release/deps/libbindings.rlib 
+    '';
+    cargoTestExtraArgs = "--no-run";
+  });
+  nix-integration-tests-binaries = pkgs.stdenv.mkDerivation {
+      # Make sure we have the correct dependencies
+      inherit (heavy_computer) version;
+      nativeBuildInputs =
+        heavy_computer.nativeBuildInputs;
+      name = "${packageName}-integration-tests-${heavy_computer.version}";
+      pname = "${packageName}-integration-tests";
+
+      # No building, just install by copy
+      phases = [ "installPhase" ];
+      installPhase = ''
+        set -ex
+        OUT_FOLDER=$out/bin
+        mkdir -p $OUT_FOLDER
+
+        cp ${nix-integration-tests-internal}/target/release/deps/* $OUT_FOLDER
+        # Remove all files without extension
+        rm -f $OUT_FOLDER/*.d $OUT_FOLDER/*.rmeta $OUT_FOLDER/*.rlib $OUT_FOLDER/*.dylib
+      '';
+    };
+    nix-integration-tests = pkgs.writeShellScriptBin "nix-integration-tests" ''
+      set -ex
+      TEST_FOLDER=${nix-integration-tests-binaries}/bin
+      echo "Running all tests"
+      for f in `ls $TEST_FOLDER`; do $TEST_FOLDER/$f; done
+    '';
 
   coverage_args =
     "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
@@ -225,6 +265,6 @@ let
       '';
     };
 in {
-  inherit heavy_computer binary ext wheel test coverage_html coverage_lcov;
+  inherit heavy_computer binary ext wheel test coverage_html coverage_lcov nix-integration-tests;
   rustToolchain = toolchain;
 }

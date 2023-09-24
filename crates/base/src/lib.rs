@@ -8,7 +8,9 @@ pub fn hello() {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn fail() {
+    fn always_fail() {
+        println!("HELLO!");
         assert!(true);
+        assert!(false);
     }
 }

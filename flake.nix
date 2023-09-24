@@ -25,16 +25,15 @@
         # Get packages
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ (import rust-overlay) ];
         };
         packageName = "heavy_computer";
-        python = pkgs.python310;
+        python = "python310";
 
         # Creating the rust defitions
         create-rust = args:
-          import ./nix/rust.nix {
-            inherit system pkgs python packageName crane;
-          } // args;
+          import ./nix/rust.nix ({
+            inherit system python packageName crane rust-overlay nixpkgs;
+          } // args);
         rust = create-rust { };
         docker = pkgs.dockerTools.buildLayeredImage {
           name = packageName;
@@ -45,13 +44,13 @@
 
         # Integration tests
         integration-tests =
-          import ./nix/integration-tests.nix { inherit nixpkgs pkgs system; };
+          import ./nix/integration-tests.nix { inherit nixpkgs pkgs system; integration-tests = system: (create-rust { inherit system; }).nix-integration-tests; };
 
         # Scripts
         scripts = import ./nix/scripts.nix { inherit pkgs; };
 
         # Create a shell to build the project with a given rust toolchain
-        create-shell = { rustToolchain ? rust.rustToolchain }:
+        create-shell = { }:
           pkgs.mkShell ({
             # Environment variables
             CARGO_TARGET_DIR = "/tmp/interactive_rust_build";
@@ -64,7 +63,7 @@
 
             # Get the inputs to build all crates
             inputsFrom =
-              [ (create-rust { inherit rustToolchain; }).heavy_computer ];
+              [ (create-rust { }).heavy_computer ];
 
             buildInputs = with pkgs;
               [ rust-analyzer cargo-nextest openssl scripts.fmt ]
@@ -79,6 +78,7 @@
           # TODO: coverage = rust.coverage_html;
           # TODO: coverage_lcov = rust.coverage_lcov;
           test = rust.test;
+          nix-integration-tests = rust.nix-integration-tests;
           integration-tests = integration-tests.test;
           docker = docker;
         } // scripts;
