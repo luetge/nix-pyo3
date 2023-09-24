@@ -30,7 +30,7 @@ in
 
     testScript = ''
       machine.wait_for_unit("default.target")
-      machine.succeed("su -- alice -c '${tests}/bin/nix-integration-tests'")
+      machine.succeed("${tests}/bin/nix-integration-tests")
     '';
   };
 }
