@@ -4,7 +4,7 @@
   inputs = {
     # TODO: Fix this non-main reference once this PR is merged: https://github.com/NixOS/nixpkgs/pull/193336
     nixpkgs.url =
-      "github:NixOS/nixpkgs/e39a5efc4504099194032dfabdf60a0c4c78f181";
+      "github:luetge/nixpkgs";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
