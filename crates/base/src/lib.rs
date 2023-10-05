@@ -7,6 +7,7 @@ pub fn hello() {
 
 #[cfg(test)]
 mod tests {
+    #[nix_integration_test::nix_integration_test]
     #[test]
     fn always_fail() {
         println!("HELLO!");

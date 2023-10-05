@@ -59,7 +59,7 @@
             LLVM_PROFDATA =
               "${pkgs.llvmPackages_14.bintools-unwrapped}/bin/llvm-profdata";
             RUSTFLAGS = "-W missing_copy_implementations -W rust_2018_idioms";
-            PYO3_PYTHON = "${python}/bin/python";
+            PYO3_PYTHON = "${pkgs.${python}}/bin/python";
 
             # Get the inputs to build all crates
             inputsFrom =

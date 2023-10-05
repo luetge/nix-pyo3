@@ -1,10 +1,9 @@
 [package]
-name = "base"
+name = "nix_integration_test"
 version.workspace = true
 readme.workspace = true
 authors.workspace = true
 edition.workspace = true
 
-[dependencies]
-uuid.workspace = true
-nix_integration_test.workspace = true
+[lib]
+proc-macro = true

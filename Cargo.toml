@@ -1,5 +1,6 @@
 [workspace]
 members = ["crates/*"]
+resolver = "2"
 
 [workspace.package]
 authors = ["Daniel Lütgehetman"]
@@ -17,9 +18,11 @@ lto = "off"
 base = { path = "./crates/base" }
 bindings = { path = "./crates/bindings" }
 say-hello = { path = "./crates/say-hello" }
+nix_integration_test = { path = "./crates/nix_integration_test" }
 
 # external ones
 uuid = { version = "1.4.0", features = ["v4"] }
+
 
 [workspace.dependencies.pyo3]
 version = "0.18.3"
