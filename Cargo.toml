@@ -18,10 +18,10 @@ lto = "off"
 base = { path = "./crates/base" }
 bindings = { path = "./crates/bindings" }
 say-hello = { path = "./crates/say-hello" }
-nix_integration_test = { path = "./crates/nix_integration_test" }
+nix_integration_tests = { path = "./crates/nix_integration_tests" }
 
 # external ones
-uuid = { version = "1.4.0", features = ["v4"] }
+uuid = { version = "1.4.1", features = ["v4"] }
 
 
 [workspace.dependencies.pyo3]

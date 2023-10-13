@@ -7,4 +7,3 @@ edition.workspace = true
 
 [dependencies]
 uuid.workspace = true
-nix_integration_test.workspace = true

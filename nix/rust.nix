@@ -89,39 +89,26 @@ let
     '';
 
   });
-  nix-integration-tests-internal = craneLib.cargoTest (commonArgsZig // {
+  nix-integration-tests-binaries = craneLib.buildPackage (commonArgsZig // {
+    pname = "${packageName}-e2e";
     cargoArtifacts = cargoArtifactsZig;
     preConfigurePhases = [ "fixBindings" ];
     fixBindings = ''
       rm -f target/release/deps/libbindings.rlib 
     '';
-    cargoTestExtraArgs = "--no-run";
+    doCheck = false;
+    cargoExtraArgs = "-p nix_integration_tests";
   });
-  nix-integration-tests-binaries = pkgs.stdenv.mkDerivation {
-      # Make sure we have the correct dependencies
-      inherit (heavy_computer) version;
-      nativeBuildInputs =
-        heavy_computer.nativeBuildInputs;
-      name = "${packageName}-integration-tests-${heavy_computer.version}";
-      pname = "${packageName}-integration-tests";
-
-      # No building, just install by copy
-      phases = [ "installPhase" ];
-      installPhase = ''
-        set -ex
-        OUT_FOLDER=$out/bin
-        mkdir -p $OUT_FOLDER
-
-        cp ${nix-integration-tests-internal}/target/release/deps/* $OUT_FOLDER
-        # Remove all files without extension
-        rm -f $OUT_FOLDER/*.d $OUT_FOLDER/*.rmeta $OUT_FOLDER/*.rlib $OUT_FOLDER/*.dylib
-      '';
-    };
     nix-integration-tests = pkgs.writeShellScriptBin "nix-integration-tests" ''
-      set -ex
+      set -e
       TEST_FOLDER=${nix-integration-tests-binaries}/bin
-      echo "Running all tests"
-      for f in `ls $TEST_FOLDER`; do $TEST_FOLDER/$f; done
+      TESTS=`ls $TEST_FOLDER`
+      echo "###### Running all tests: $TESTS"
+      for f in `ls $TEST_FOLDER`
+        do
+          printf '\n\n###### Running test %s\n' "$f"
+          $TEST_FOLDER/$f
+      done
     '';
 
   coverage_args =
