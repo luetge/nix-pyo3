@@ -21,8 +21,8 @@ pub async fn send_secret_to_kafka(brokers: &str, topic_name: &str, msg: &str) ->
     let topic_name = topic_name.to_owned();
     let msg = msg.to_owned();
     tokio::spawn(async move {
-        for _ in 0..20 {
-            producer
+        for _ in 0..120 {
+            if let Err(e) = producer
                 .send(
                     FutureRecord::to(&topic_name.clone())
                         .payload(&msg)
@@ -30,7 +30,9 @@ pub async fn send_secret_to_kafka(brokers: &str, topic_name: &str, msg: &str) ->
                     Timeout::Never,
                 )
                 .await
-                .expect("done");
+            {
+                println!("could not send message: {:?}", e);
+            }
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     })
@@ -50,21 +52,26 @@ pub async fn read_secret_from_kafka(brokers: &str, topic_name: &str) -> String {
         .subscribe(&[topic_name])
         .expect("Can't subscribe to specified topics");
 
-    match consumer.recv().await {
-        Err(e) => {
-            println!("Kafka error: {}", e);
-            panic!("kafka error")
-        }
-        Ok(m) => match m.payload_view::<str>() {
-            None => "",
-            Some(Ok(s)) => s,
-            Some(Err(e)) => {
-                println!("Error while deserializing message payload: {:?}", e);
-                panic!("error deserializing")
+    for _ in 0..100 {
+        match consumer.recv().await {
+            Err(e) => {
+                println!("Kafka error: {}", e);
+            }
+            Ok(m) => {
+                return match m.payload_view::<str>() {
+                    None => "",
+                    Some(Ok(s)) => s,
+                    Some(Err(e)) => {
+                        println!("Error while deserializing message payload: {:?}", e);
+                        panic!("error deserializing")
+                    }
+                }
+                .to_owned()
             }
         }
-        .to_owned(),
     }
+
+    panic!("could not read message")
 }
 
 #[cfg(test)]
