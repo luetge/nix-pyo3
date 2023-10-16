@@ -112,7 +112,7 @@ let
 
   coverage_args =
     "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
-  coverage_html = craneLib.cargoLlvmCov (commonArgs // rec {
+  coverage_html = let open = if pkgs.lib.isDarwin then "/usr/bin/open" else "${xdg-utils}/bin/xdg-open"; in craneLib.cargoLlvmCov (commonArgs // rec {
     inherit cargoArtifacts;
     cargoLlvmCovExtraArgs = "--html ${coverage_args}";
     name = "rust-coverage";
@@ -121,11 +121,10 @@ let
       mkdir -p $out
       cp -r target/llvm-cov/html/* $out/
 
-      # Make it runnable with nix run (at least on macOS)
-      # TODO: Make it work on linux
+      # Make it runnable with nix run
       mkdir -p $out/bin
       echo "#!/bin/bash" >> $out/bin/${name}
-      echo "/usr/bin/open $out/index.html" >> $out/bin/${name}
+      echo "${open} $out/index.html" >> $out/bin/${name}
       chmod +x $out/bin/${name}
     '';
   });
