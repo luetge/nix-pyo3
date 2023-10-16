@@ -54,6 +54,8 @@ dependencies = [
  "base",
  "pyo3",
  "pyo3-build-config",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

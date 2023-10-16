@@ -105,6 +105,7 @@
           nix-integration-tests = rust.nix-integration-tests;
           integration-tests = integration-tests.test;
           integration-tests-cli = integration-tests.test.driver;
+          integration-tests-python = rust.integration-tests-python;
           docker = docker;
         } // scripts;
 

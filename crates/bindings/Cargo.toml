@@ -12,6 +12,8 @@ name = "bindings"
 [dependencies]
 base.workspace = true
 pyo3.workspace = true
+uuid.workspace = true
+tokio.workspace = true
 
 [build-dependencies]
 pyo3-build-config = "0.18.3"

@@ -26,6 +26,12 @@ let
     export XDG_CACHE_HOME=/tmp/nixrustcompilecache
     ${pkgs.zig}/bin/zig cc ${target} "$@"
   '';
+  integration-tests-python = pkgs.writeShellScriptBin "integration-tests-python" ''
+    set -e
+    export PYTHONPATH=$PYTHONPATH:${ext python_}
+    cd ${../crates/nix_integration_tests/python}
+    ${python_.pkgs.pytest}/bin/pytest
+  '';
 
   fileFilter = path: _type: builtins.match ".*test/assets/.*$" path != null;
 
@@ -65,9 +71,9 @@ let
   commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then
     { }
   else {
-    HOST_CC = "${zigcc}/bin/zigcc";
-    CC = "${zigcc}/bin/zigcc";
-    RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
+    # HOST_CC = "${zigcc}/bin/zigcc";
+    # CC = "${zigcc}/bin/zigcc";
+    # RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
   });
 
   # Build dependencies separately for faster builds in CI/CD
@@ -102,7 +108,8 @@ let
     set -e
     TEST_FOLDER=${nix-integration-tests-binaries}/bin
     TESTS=`ls $TEST_FOLDER`
-    echo "###### Running all tests: $TESTS"
+    ${integration-tests-python}/bin/integration-tests-python
+    echo "###### Running all rust tests: $TESTS"
     for f in `ls $TEST_FOLDER`
       do
         printf '\n\n###### Running test %s\n' "$f"
@@ -115,7 +122,7 @@ let
   coverage_html =
     let
       open =
-        if pkgs.lib.isDarwin then
+        if pkgs.stdenv.isDarwin then
           "/usr/bin/open"
         else
           "${pkgs.xdg-utils}/bin/xdg-open";
@@ -261,6 +268,6 @@ let
     };
 in
 {
-  inherit heavy_computer binary ext wheel test coverage_html coverage_lcov nix-integration-tests;
+  inherit heavy_computer binary ext wheel test coverage_html coverage_lcov nix-integration-tests integration-tests-python;
   rustToolchain = toolchain;
 }
