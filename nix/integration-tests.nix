@@ -1,7 +1,7 @@
 { nixpkgs, pkgs, system, integration-tests }:
 
 let
-  vm-system = "aarch64-linux";
+  vm-system = builtins.replaceStrings [ "darwin" ] [ "linux" ] system;
   vm-pkgs = nixpkgs.legacyPackages.${vm-system}.pkgs;
   tests = integration-tests vm-system;
   base = {
