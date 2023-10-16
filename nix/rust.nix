@@ -112,22 +112,30 @@ let
 
   coverage_args =
     "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
-  coverage_html = let open = if pkgs.lib.isDarwin then "/usr/bin/open" else "${xdg-utils}/bin/xdg-open"; in craneLib.cargoLlvmCov (commonArgs // rec {
-    inherit cargoArtifacts;
-    cargoLlvmCovExtraArgs = "--html ${coverage_args}";
-    name = "rust-coverage";
-    meta.mainProgram = name;
-    postInstall = ''
-      mkdir -p $out
-      cp -r target/llvm-cov/html/* $out/
+  coverage_html =
+    let
+      open =
+        if pkgs.lib.isDarwin then
+          "/usr/bin/open"
+        else
+          "${pkgs.xdg-utils}/bin/xdg-open";
+    in
+    craneLib.cargoLlvmCov (commonArgs // rec {
+      inherit cargoArtifacts;
+      cargoLlvmCovExtraArgs = "--html ${coverage_args}";
+      name = "rust-coverage";
+      meta.mainProgram = name;
+      postInstall = ''
+        mkdir -p $out
+        cp -r target/llvm-cov/html/* $out/
 
-      # Make it runnable with nix run
-      mkdir -p $out/bin
-      echo "#!/bin/bash" >> $out/bin/${name}
-      echo "${open} $out/index.html" >> $out/bin/${name}
-      chmod +x $out/bin/${name}
-    '';
-  });
+        # Make it runnable with nix run
+        mkdir -p $out/bin
+        echo "#!/bin/bash" >> $out/bin/${name}
+        echo "${open} $out/index.html" >> $out/bin/${name}
+        chmod +x $out/bin/${name}
+      '';
+    });
 
   coverage_lcov = craneLib.cargoLlvmCov (commonArgs // {
     inherit cargoArtifacts;
