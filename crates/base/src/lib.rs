@@ -21,7 +21,7 @@ pub async fn send_secret_to_kafka(brokers: &str, topic_name: &str, msg: &str) ->
     let topic_name = topic_name.to_owned();
     let msg = msg.to_owned();
     tokio::spawn(async move {
-        for _ in 0..120 {
+        for _ in 0..1200 {
             if let Err(e) = producer
                 .send(
                     FutureRecord::to(&topic_name.clone())
@@ -52,7 +52,7 @@ pub async fn read_secret_from_kafka(brokers: &str, topic_name: &str) -> String {
         .subscribe(&[topic_name])
         .expect("Can't subscribe to specified topics");
 
-    for _ in 0..100 {
+    for _ in 0..1200 {
         match consumer.recv().await {
             Err(e) => {
                 println!("Kafka error: {}", e);
