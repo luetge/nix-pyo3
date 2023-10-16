@@ -5,7 +5,7 @@ let
     overlays = [ (import rust-overlay) ];
   };
   python_ = pkgs.${python};
-  rustToolchain = pkgs.rust-bin.stable.latest.default; # TODO: Make configurable
+  rustToolchain = pkgs.rust-bin.stable.latest.default;
   toolchain = rustToolchain.override {
     extensions = [
       "rust-src"
@@ -18,7 +18,7 @@ let
     ];
   };
   craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-  # We compile with glibc 2.17 for the pythone extension to be manylinux compliant
+  # We compile with glibc 2.17 for the python extension to be manylinux compliant
   target = if (!pkgs.stdenv.isDarwin) then "-target ${system}-gnu.2.17" else "";
   zigcc = pkgs.writeShellScriptBin "zigcc" ''
     set -ex
@@ -62,14 +62,12 @@ let
         "-C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
   };
 
-  # TODO: llvm cov fails with zig, fix this to avoid double compilation
   commonArgsZig = commonArgs // (if pkgs.stdenv.isDarwin then
     { }
   else {
-    # TODO: Enable again
-    # HOST_CC = "${zigcc}/bin/zigcc";
-    # CC = "${zigcc}/bin/zigcc";
-    # RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
+    HOST_CC = "${zigcc}/bin/zigcc";
+    CC = "${zigcc}/bin/zigcc";
+    RUSTFLAGS = "-C linker=${zigcc}/bin/zigcc " + commonArgs.RUSTFLAGS;
   });
 
   # Build dependencies separately for faster builds in CI/CD

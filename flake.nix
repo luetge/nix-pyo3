@@ -33,6 +33,7 @@
         };
         packageName = "heavy_computer";
         python = "python310";
+        python_ = pkgs.${python};
 
         # Creating the rust defitions
         create-rust = args:
@@ -77,7 +78,7 @@
             LLVM_PROFDATA =
               "${pkgs.llvmPackages_14.bintools-unwrapped}/bin/llvm-profdata";
             RUSTFLAGS = "-W missing_copy_implementations -W rust_2018_idioms";
-            PYO3_PYTHON = "${pkgs.${python}}/bin/python";
+            PYO3_PYTHON = "${python_}/bin/python";
 
             # Get the inputs to build all crates
             inputsFrom =
@@ -96,10 +97,10 @@
         packages = {
           inherit git-hooks;
           say-hello = rust.binary "say-hello";
-          bindings = rust.ext python;
-          wheel = rust.wheel python;
-          # TODO: coverage = rust.coverage_html;
-          # TODO: coverage_lcov = rust.coverage_lcov;
+          bindings = rust.ext python_;
+          wheel = rust.wheel python_;
+          coverage = rust.coverage_html; # TODO: Fix
+          coverage_lcov = rust.coverage_lcov; # TODO: Fix
           test = rust.test;
           nix-integration-tests = rust.nix-integration-tests;
           integration-tests = integration-tests.test;
