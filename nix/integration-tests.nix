@@ -1,21 +1,21 @@
 { nixpkgs, pkgs, system, integration-tests }:
 
 let
-vm-system = "aarch64-linux";
-vm-pkgs = nixpkgs.legacyPackages.${vm-system}.pkgs;
-tests = integration-tests vm-system;
-base = {
+  vm-system = "aarch64-linux";
+  vm-pkgs = nixpkgs.legacyPackages.${vm-system}.pkgs;
+  tests = integration-tests vm-system;
+  base = {
     nixpkgs.pkgs = vm-pkgs;
 
     # Make it faster by not waiting for network
     # https://www.reddit.com/r/NixOS/comments/vdz86j/how_to_remove_boot_dependency_on_network_for_a/
-    systemd.targets.network-online.wantedBy = pkgs.lib.mkForce [];
-    systemd.services.NetworkManager-wait-online.wantedBy = pkgs.lib.mkForce [];
+    systemd.targets.network-online.wantedBy = pkgs.lib.mkForce [ ];
+    systemd.services.NetworkManager-wait-online.wantedBy = pkgs.lib.mkForce [ ];
 
     system.stateVersion = "22.11";
-};
-kafka_hostname = "kafka";
-kafka_ip = 9092;
+  };
+  kafka_hostname = "kafka";
+  kafka_ip = 9092;
 in
 {
   test = pkgs.nixosTest {

@@ -11,6 +11,11 @@
       inputs.flake-utils.follows = "flake-utils";
     };
     flake-utils.url = "github:numtide/flake-utils";
+    pre-commit-hooks = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,7 +24,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay, crane }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay, pre-commit-hooks, crane }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Get packages
@@ -47,10 +52,23 @@
           import ./nix/integration-tests.nix { inherit nixpkgs pkgs system; integration-tests = system: (create-rust { inherit system; }).nix-integration-tests; };
 
         # Scripts
-        scripts = import ./nix/scripts.nix { inherit pkgs; };
+        scripts = import ./nix/scripts.nix { inherit pkgs rust; };
+
+        # Define git hooks that get automatically installed
+        git-hooks = pre-commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            format_all = {
+              enable = true;
+              name = "format_all";
+              entry = "${scripts.format_all}/bin/format_all";
+              pass_filenames = false;
+            };
+          };
+        };
 
         # Create a shell to build the project with a given rust toolchain
-        create-shell = { }:
+        create-shell = {}:
           pkgs.mkShell ({
             # Environment variables
             CARGO_TARGET_DIR = "/tmp/interactive_rust_build";
@@ -66,12 +84,17 @@
               [ (create-rust { }).heavy_computer ];
 
             buildInputs = with pkgs;
-              [ rust-analyzer cargo-nextest openssl scripts.fmt (python310.withPackages (ps: with ps; [ kafka-python ])) ]
+              [ rust-analyzer cargo-nextest openssl scripts.format_all ]
               ++ lib.optional (!stdenv.isDarwin) [ pkgs.sssd ];
+
+            # Register git hooks
+            inherit (git-hooks) shellHook;
           });
 
-      in {
+      in
+      {
         packages = {
+          inherit git-hooks;
           say-hello = rust.binary "say-hello";
           bindings = rust.ext python;
           wheel = rust.wheel python;
@@ -85,9 +108,9 @@
         } // scripts;
 
         checks = {
+          inherit git-hooks;
           test = rust.test;
           integration-tests = integration-tests.test;
-          fmt = scripts.fmt_check;
         };
 
         devShells = { default = create-shell { }; };

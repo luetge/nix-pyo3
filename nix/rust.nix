@@ -41,11 +41,11 @@ let
     buildInputs =
       (with pkgs; [ libiconv clang lld pkg-config git python_ rdkafka zigcc ])
       ++ pkgs.lib.optional pkgs.stdenv.isDarwin
-      (with pkgs.darwin.apple_sdk.frameworks; [
-        Security
-        Foundation
-        CoreFoundation
-      ]) ++ pkgs.lib.optional (!pkgs.stdenv.isDarwin) [ pkgs.autoPatchelfHook ];
+        (with pkgs.darwin.apple_sdk.frameworks; [
+          Security
+          Foundation
+          CoreFoundation
+        ]) ++ pkgs.lib.optional (!pkgs.stdenv.isDarwin) [ pkgs.autoPatchelfHook ];
 
     cargoExtraArgs = "--features extension-module";
 
@@ -55,10 +55,11 @@ let
     # Build optimization
     CARGO_INCREMENTAL = "0";
     CARGO_PROFILE_RELEASE_LTO = "thin";
-    RUSTFLAGS = if pkgs.stdenv.isDarwin then
-      "-C force-frame-pointers=yes -C link-arg=-Wl -C link-arg=-undefined -C link-arg=dynamic_lookup"
-    else
-      "-C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
+    RUSTFLAGS =
+      if pkgs.stdenv.isDarwin then
+        "-C force-frame-pointers=yes -C link-arg=-Wl -C link-arg=-undefined -C link-arg=dynamic_lookup"
+      else
+        "-C link-arg=-fuse-ld=lld -C link-arg=-Wl,--compress-debug-sections=zlib -C force-frame-pointers=yes";
   };
 
   # TODO: llvm cov fails with zig, fix this to avoid double compilation
@@ -99,17 +100,17 @@ let
     doCheck = false;
     cargoExtraArgs = "-p nix_integration_tests";
   });
-    nix-integration-tests = pkgs.writeShellScriptBin "nix-integration-tests" ''
-      set -e
-      TEST_FOLDER=${nix-integration-tests-binaries}/bin
-      TESTS=`ls $TEST_FOLDER`
-      echo "###### Running all tests: $TESTS"
-      for f in `ls $TEST_FOLDER`
-        do
-          printf '\n\n###### Running test %s\n' "$f"
-          $TEST_FOLDER/$f
-      done
-    '';
+  nix-integration-tests = pkgs.writeShellScriptBin "nix-integration-tests" ''
+    set -e
+    TEST_FOLDER=${nix-integration-tests-binaries}/bin
+    TESTS=`ls $TEST_FOLDER`
+    echo "###### Running all tests: $TESTS"
+    for f in `ls $TEST_FOLDER`
+      do
+        printf '\n\n###### Running test %s\n' "$f"
+        $TEST_FOLDER/$f
+    done
+  '';
 
   coverage_args =
     "--workspace --ignore-filename-regex '.*vendor-cargo-deps/.*'";
@@ -189,15 +190,17 @@ let
       pname = "${packageName}-wheel";
       phases = [ "installPhase" ];
 
-      platform_version = if pkgs.stdenv.isDarwin then
-        "macosx_11_0_arm64"
-      else
-        "manylinux_2_17_x86_64.manylinux2014_x86_64";
+      platform_version =
+        if pkgs.stdenv.isDarwin then
+          "macosx_11_0_arm64"
+        else
+          "manylinux_2_17_x86_64.manylinux2014_x86_64";
 
-      repair_wheel_command = if (!pkgs.stdenv.isDarwin) then
-        "${pkgs.auditwheel}/bin/auditwheel repair --plat manylinux_2_17_x86_64 --strip *.whl -w ./repaired"
-      else
-        "mkdir -p ./repaired && mv `ls *.whl` ./repaired";
+      repair_wheel_command =
+        if (!pkgs.stdenv.isDarwin) then
+          "${pkgs.auditwheel}/bin/auditwheel repair --plat manylinux_2_17_x86_64 --strip *.whl -w ./repaired"
+        else
+          "mkdir -p ./repaired && mv `ls *.whl` ./repaired";
 
       # Build the wheel
       installPhase = ''
@@ -251,7 +254,8 @@ let
         rm -rf $tmp_dir
       '';
     };
-in {
+in
+{
   inherit heavy_computer binary ext wheel test coverage_html coverage_lcov nix-integration-tests;
   rustToolchain = toolchain;
 }

@@ -1,12 +1,10 @@
-{ pkgs }:
+{ pkgs, rust }:
 
 rec {
-  fmt = pkgs.writeShellScriptBin "fmt" ''
+  format_all = pkgs.writeShellScriptBin "format_all" ''
     set -ex
-    ${pkgs.nixfmt}/bin/nixfmt `find . -type f -name '*.nix'` $@
-  '';
-  fmt_check = pkgs.writeShellScriptBin "fmt_check" ''
-    set -ex
-    ${fmt}/bin/fmt --check
+    ${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt *.nix **/*.nix --check || ${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt *.nix **/*.nix
+    PATH=$PATH:${rust.rustToolchain}/bin cargo fmt
+    ${pkgs.black}/bin/black .
   '';
 }
