@@ -66,7 +66,7 @@
               [ (create-rust { }).heavy_computer ];
 
             buildInputs = with pkgs;
-              [ rust-analyzer cargo-nextest openssl scripts.fmt ]
+              [ rust-analyzer cargo-nextest openssl scripts.fmt (python310.withPackages (ps: with ps; [ kafka-python ])) ]
               ++ lib.optional (!stdenv.isDarwin) [ pkgs.sssd ];
           });
 
@@ -80,6 +80,7 @@
           test = rust.test;
           nix-integration-tests = rust.nix-integration-tests;
           integration-tests = integration-tests.test;
+          integration-tests-cli = integration-tests.test.driver;
           docker = docker;
         } // scripts;
 

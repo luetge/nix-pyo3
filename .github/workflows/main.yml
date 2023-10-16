@@ -22,3 +22,4 @@ jobs:
       - run: nix build .#wheel
       - run: nix build .#docker
       - run: nix build .#coverage_lcov
+      - run: nix build .#integration-tests

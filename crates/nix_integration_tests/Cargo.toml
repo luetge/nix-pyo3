@@ -7,3 +7,6 @@ edition.workspace = true
 
 [dependencies]
 base.workspace = true
+
+uuid.workspace = true
+tokio.workspace = true

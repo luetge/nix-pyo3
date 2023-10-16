@@ -39,13 +39,13 @@ let
 
     # Build inputs for the crates
     buildInputs =
-      (with pkgs; [ libiconv clang lld pkg-config git zlib python_ zigcc ])
+      (with pkgs; [ libiconv clang lld pkg-config git python_ rdkafka zigcc ])
       ++ pkgs.lib.optional pkgs.stdenv.isDarwin
       (with pkgs.darwin.apple_sdk.frameworks; [
         Security
         Foundation
         CoreFoundation
-      ]);
+      ]) ++ pkgs.lib.optional (!pkgs.stdenv.isDarwin) [ pkgs.autoPatchelfHook ];
 
     cargoExtraArgs = "--features extension-module";
 
