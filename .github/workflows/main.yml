@@ -18,8 +18,7 @@ jobs:
           planner: linux
       - name: Run the Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix build .#test
-      - run: nix build .#integration-tests
+      - run: nix flake check -L
       # TODO: - run: nix build .#wheel
       - run: nix build .#docker
       # TODO: - run: nix build .#coverage_lcov
