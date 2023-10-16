@@ -6,6 +6,11 @@ use rdkafka::Message;
 use tokio::task::JoinHandle;
 use uuid::Uuid;
 
+pub fn hello() {
+    let uuid = Uuid::new_v4();
+    println!("Helloo! {:?}", uuid);
+}
+
 pub async fn send_secret_to_kafka(brokers: &str, topic_name: &str, msg: &str) -> JoinHandle<()> {
     let producer: FutureProducer = ClientConfig::new()
         .set("bootstrap.servers", brokers)
