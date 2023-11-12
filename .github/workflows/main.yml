@@ -6,14 +6,12 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
         with:
-          init: none
-          planner: linux
           extra-conf: "system-features = nixos-test benchmark big-parallel kvm"
       - name: Run the Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@main
